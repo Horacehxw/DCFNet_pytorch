@@ -7,9 +7,9 @@ import torch
 
 import cv2
 import time as time
-from util import crop_chw, gaussian_shaped_labels, cxy_wh_2_rect1, rect1_2_cxy_wh, cxy_wh_2_bbox
-from net import DCFNet
-from eval_otb import eval_auc
+from dcfnet.util import crop_chw, gaussian_shaped_labels, cxy_wh_2_rect1, rect1_2_cxy_wh, cxy_wh_2_bbox
+from dcfnet.net import DCFNet
+from dcfnet.eval_otb import eval_auc
 
 
 class TrackerConfig(object):

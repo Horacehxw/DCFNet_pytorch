@@ -3,10 +3,10 @@ import cv2
 import numpy as np
 from os import makedirs
 from os.path import isfile, isdir, join
-from util import cxy_wh_2_rect1
+from dcfnet.util import cxy_wh_2_rect1
 import torch
 import json
-from DCFNet import *
+from dcfnet.DCFNet import *
 
 parser = argparse.ArgumentParser(description='Tune parameters for DCFNet tracker on OTB2015')
 parser.add_argument('-v', '--visualization', dest='visualization', action='store_true',
