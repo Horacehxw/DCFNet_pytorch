@@ -63,7 +63,7 @@ def convert_bb_to_center(bboxes):
 def eval_auc(dataset='OTB2015', tracker_reg='S*', start=0, end=1e6):
     list_path = os.path.join('dataset', dataset + '.json')
     annos = json.load(open(list_path, 'r'))
-    seqs = annos.keys()
+    seqs = list(annos.keys())
 
     OTB2013 = ['carDark', 'car4', 'david', 'david2', 'sylvester', 'trellis', 'fish', 'mhyang', 'soccer', 'matrix',
                'ironman', 'deer', 'skating1', 'shaking', 'singer1', 'singer2', 'coke', 'bolt', 'boy', 'dudek',

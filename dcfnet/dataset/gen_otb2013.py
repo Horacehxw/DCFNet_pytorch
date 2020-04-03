@@ -1,7 +1,7 @@
 import json
 
 OTB2015 = json.load(open('OTB2015.json', 'r'))
-videos = OTB2015.keys()
+videos = list(OTB2015.keys())
 
 OTB2013 = dict()
 for v in videos:

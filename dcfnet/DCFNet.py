@@ -111,7 +111,7 @@ if __name__ == '__main__':
     base_path = join('dataset', dataset)
     json_path = join('dataset', dataset + '.json')
     annos = json.load(open(json_path, 'r'))
-    videos = sorted(annos.keys())
+    videos = sorted(list(annos.keys()))
 
     use_gpu = True
     visualization = False

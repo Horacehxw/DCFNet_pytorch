@@ -101,8 +101,8 @@ if __name__ == '__main__':
     match_dict['feature.2.weight'] = 'conv2_w'
     match_dict['feature.2.bias'] = 'conv2_b'
 
-    for var_name in net.state_dict().keys():
-        print var_name
+    for var_name in list(net.state_dict().keys()):
+        print(var_name)
         key_in_model = match_dict[var_name]
         param_in_model = var_name.rsplit('.', 1)[1]
         if 'weight' in var_name:

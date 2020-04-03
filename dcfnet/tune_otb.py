@@ -75,7 +75,7 @@ for network in params['network']:
         base_path = join('dataset', dataset)
         json_path = join('dataset', dataset+'.json')
         annos = json.load(open(json_path, 'r'))
-        videos = annos.keys()
+        videos = list(annos.keys())
         p['dataset'] = dataset
         np.random.shuffle(videos)
         for v, video in enumerate(videos):
