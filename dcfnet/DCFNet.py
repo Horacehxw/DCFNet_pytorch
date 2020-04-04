@@ -37,6 +37,37 @@ class TrackerConfig(object):
     yf = torch.rfft(torch.Tensor(y).view(1, 1, crop_sz, crop_sz).cuda(), signal_ndim=2)
     cos_window = torch.Tensor(np.outer(np.hanning(crop_sz), np.hanning(crop_sz))).cuda()
 
+class TrackerConfigCPU(object):
+    # These are the default hyper-params for DCFNet
+    # OTB2013 / AUC(0.665)
+    feature_path = 'param.pth'
+    crop_sz = 125
+
+    lambda0 = 1e-4
+    padding = 2
+    output_sigma_factor = 0.1
+    interp_factor = 0.01
+    num_scale = 3
+    scale_step = 1.0275
+    scale_factor = scale_step ** (np.arange(num_scale) - num_scale / 2)
+    min_scale_factor = 0.2
+    max_scale_factor = 5
+    scale_penalty = 0.9925
+    scale_penalties = scale_penalty ** (np.abs((np.arange(num_scale) - num_scale / 2)))
+
+    net_input_size = [crop_sz, crop_sz]
+    net_average_image = np.array([104, 117, 123]).reshape(-1, 1, 1).astype(np.float32)
+    output_sigma = crop_sz / (1 + padding) * output_sigma_factor
+    y = gaussian_shaped_labels(output_sigma, net_input_size)
+    yf = torch.rfft(torch.Tensor(y).view(1, 1, crop_sz, crop_sz), signal_ndim=2)
+    cos_window = torch.Tensor(np.outer(np.hanning(crop_sz), np.hanning(crop_sz)))
+
+# def unravel_index(index, shape):
+#     out = []
+#     for dim in reversed(shape):
+#         out.append(index % dim)
+#         index = index // dim
+#     return tuple(reversed(out))
 
 class DCFNetTraker(object):
     def __init__(self, im, init_rect, config=TrackerConfig(), gpu=True):
@@ -59,7 +90,10 @@ class DCFNetTraker(object):
         patch = crop_chw(im, bbox, self.config.crop_sz)
 
         target = patch - config.net_average_image
-        self.net.update(torch.Tensor(np.expand_dims(target, axis=0)).cuda())
+        if self.gpu:
+            self.net.update(torch.Tensor(np.expand_dims(target, axis=0)).cuda())
+        else:
+            self.net.update(torch.Tensor(np.expand_dims(target, axis=0)))
         self.target_pos, self.target_sz = target_pos, target_sz
         self.patch_crop = np.zeros((config.num_scale, patch.shape[0], patch.shape[1], patch.shape[2]), np.float32)  # buff
 
@@ -78,7 +112,7 @@ class DCFNetTraker(object):
         peak, idx = torch.max(response.view(self.config.num_scale, -1), 1)
         peak = peak.data.cpu().numpy() * self.config.scale_penalties
         best_scale = np.argmax(peak)
-        r_max, c_max = np.unravel_index(idx[best_scale], self.config.net_input_size)
+        r_max, c_max = np.unravel_index(idx[best_scale].data.cpu().numpy(), self.config.net_input_size)
 
         if r_max > self.config.net_input_size[0] / 2:
             r_max = r_max - self.config.net_input_size[0]
@@ -94,8 +128,10 @@ class DCFNetTraker(object):
         bbox = cxy_wh_2_bbox(self.target_pos, window_sz)
         patch = crop_chw(im, bbox, self.config.crop_sz)
         target = patch - self.config.net_average_image
-        self.net.update(torch.Tensor(np.expand_dims(target, axis=0)).cuda(), lr=self.config.interp_factor)
-
+        if self.gpu:
+            self.net.update(torch.Tensor(np.expand_dims(target, axis=0)).cuda(), lr=self.config.interp_factor)
+        else:
+            self.net.update(torch.Tensor(np.expand_dims(target, axis=0)), lr=self.config.interp_factor)
         return cxy_wh_2_rect1(self.target_pos, self.target_sz)  # 1-index
 
 
